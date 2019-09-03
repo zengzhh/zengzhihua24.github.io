@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+
+  
+  <title>Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta property="og:type" content="website">
+<meta property="og:title" content="Hexo">
+<meta property="og:url" content="http://yoursite.com/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:locale" content="en">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Hexo">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+</html>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-Netty" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/09/03/Netty/" class="article-date">
+  <time datetime="2019-09-03T08:32:25.000Z" itemprop="datePublished">2019-09-03</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2019/09/03/Netty/">Netty</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <hr>
+<p>title: Netty<br>date: 2019-09-03 16:24:25</p>
+<h2 id="tags"><a href="#tags" class="headerlink" title="tags:"></a>tags:</h2><p>[TOC]</p>
+<p>&nbsp;</p>
+<h2 id="2-1-同步阻塞-I-O"><a href="#2-1-同步阻塞-I-O" class="headerlink" title="2.1 同步阻塞 I/O"></a>2.1 同步阻塞 I/O</h2><p>采用 BIO 通信模型的服务器，通常由一个独立的 Acceptor 线程负责监听客户端的连接，它接收到客户端连接请求之后为每个客户端创建一个新的线程进行处理，处理完成后，通过输出流返回应答给客户端，线程销毁。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">graph TD</span><br><span class="line">A1[Socket] --&gt;|读/写| B(Acceptor 线程)</span><br><span class="line">A2[Socket] --&gt;|读/写| B</span><br><span class="line">A3[Socket] --&gt;|读/写| B</span><br><span class="line">B --&gt;|创建| C1[Thread]</span><br><span class="line">B --&gt;|创建| C2[Thread]</span><br><span class="line">B --&gt;|创建| C3[Thread]</span><br></pre></td></tr></table></figure>
+
+<p>&nbsp;</p>
+<h2 id="2-2-伪异步-I-O"><a href="#2-2-伪异步-I-O" class="headerlink" title="2.2 伪异步 I/O"></a>2.2 伪异步 I/O</h2><p>采用 <strong>线程池</strong> 和 <strong>任务队列</strong> 可以实现一种叫做 <strong>伪异步 I/O</strong> 通信框架。 当有新的客户端接入时，将客户端的 Socket 封装成一个 Task 投递到后端的线程池中进行处理，JDK 的线程池维护着一个消息队列和 N 个活跃线程，对消息队列中的任务进行处理。由于线程池可以设置消息队列的大小和最大线程数，因此它的资源占用时可控的，无论多少个客户端并发访问，都不会导致资源的耗尽和宕机。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">graph TD</span><br><span class="line">A1[Socket] --&gt;|读/写| B(Acceptor 线程)</span><br><span class="line">A2[Socket] --&gt;|读/写| B</span><br><span class="line">A3[Socket] --&gt;|读/写| B</span><br><span class="line">B --&gt; |提交 Task|P[Thread Pool]</span><br><span class="line">B --&gt; |提交 Task|P</span><br><span class="line">B --&gt; |提交 Task|P</span><br></pre></td></tr></table></figure>
+
+<p>&nbsp;</p>
+<h2 id="2-3-NIO"><a href="#2-3-NIO" class="headerlink" title="2.3 NIO"></a>2.3 NIO</h2><p>NIO 官方称为 New I/O，目标是要让 Java 支持非阻塞 I/O，所以通常也叫非阻塞 I/O（Non-blocking I/O）。</p>
+<p>阻塞模式使用非常简单，但是性能和可靠性都不好，非阻塞模式则正好相反。一般来说，低负载、低并发的应用程序可以选择同步阻塞 I/O 以降低编程复杂度；对于高负载、高并发的网络应用，需要使用 NIO 的非阻塞模式进行开发。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">graph TD</span><br><span class="line">A1[Socket] --&gt;|读/写| B(Selector)</span><br><span class="line">A2[Socket] --&gt;|读/写| B</span><br><span class="line">A3[Socket] --&gt;|读/写| B</span><br><span class="line">B --&gt; P[Thread]</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-3-1-Buffer、Channel、Selector"><a href="#2-3-1-Buffer、Channel、Selector" class="headerlink" title="2.3.1 Buffer、Channel、Selector"></a>2.3.1 Buffer、Channel、Selector</h3><h4 id="1-缓冲区-Buffer"><a href="#1-缓冲区-Buffer" class="headerlink" title="1. 缓冲区 Buffer"></a>1. 缓冲区 Buffer</h4><p>Buffer 是一个对象，它包含一些要写入或者要读出的数据。在 NIO 库中，所有数据都是用缓冲区处理的。在读取数据时，它是直接从缓冲区读取；在写入数据时，写入到缓冲区。</p>
+<h4 id="2-通道-Channel"><a href="#2-通道-Channel" class="headerlink" title="2. 通道 Channel"></a>2. 通道 Channel</h4><p>网络数据通过 Channel 读取和写入。通道与流的不同之处在于通道是双向的，流只是在一个方向移动，而通道可用于读、写或者二者同时进行。</p>
+<p>因为 Channel 是全双工的，所以它可以比流更好地映射底层操作系统的 API。</p>
+<h4 id="3-多路复用器-Selector"><a href="#3-多路复用器-Selector" class="headerlink" title="3. 多路复用器 Selector"></a>3. 多路复用器 Selector</h4><p>多路复用器提供选择已经就绪的任务的能力。Selector 会不断地轮询注册在其上的 Channel，如果某个 Channel 上面发生读或者写事件，这个 Channel 就处于就绪状态，会被 Selector 轮询出来，然后通过 SelectionKey 可以获取就绪 Channel 的集合，进行后续的 I/O 操作。</p>
+<h3 id="2-3-2-NIO-服务端序列图"><a href="#2-3-2-NIO-服务端序列图" class="headerlink" title="2.3.2 NIO 服务端序列图"></a>2.3.2 NIO 服务端序列图</h3><p><img src="https://img2018.cnblogs.com/blog/745685/201811/745685-20181121173653780-1986313870.png" alt></p>
+<p>（1）打开 ServerSocketChannel</p>
+<p>（2）绑定监听地址 InetSocketAddress</p>
+<p>（3）创建 Selector，启动线程</p>
+<p>（4）将 ServerSocketChannel 注册到 Selector，监听</p>
+<p>（5）Selector 轮询注册的 Key</p>
+<p>（6）handleAccept() 处理新的客户端接入</p>
+<p>（7）设置新建客户端连接的 Socket 参数</p>
+<p>（8）向 Selector 注册监听读操作 SelectionKey.OP_READ</p>
+<p>（9）handleRead() 异步请求消息到 ByteBuffer</p>
+<p>（10）decode 请求消息</p>
+<p>（11）异步写 ByteBuffer 到 SocketChannel</p>
+<h3 id="2-3-1-NIO-客户端序列图"><a href="#2-3-1-NIO-客户端序列图" class="headerlink" title="2.3.1 NIO 客户端序列图"></a>2.3.1 NIO 客户端序列图</h3><p><img src="https://img2018.cnblogs.com/blog/745685/201811/745685-20181121173658202-1733072868.png" alt></p>
+<p>（1）打开 SocketChannel</p>
+<p>（2）设置 SocketChannel 为非阻塞模式，同时设置 TCP 参数</p>
+<p>（3）异步连接服务端</p>
+<p>（4）判断连接结果，如果连接成功，调到步骤10，否则执行步骤5</p>
+<p>（5）向 Reactor 线程的多路复用器注册 OP_CONNECT 事件</p>
+<p>（6）创建 Selector，启动线程</p>
+<p>（7）Selector 轮询就绪的 Key</p>
+<p>（8）handleConnect()</p>
+<p>（9）判断连接是否完成，完成执行步骤10</p>
+<p>（10）向多路复用器注册读事件 OP_READ</p>
+<p>（11）handleRead() 异步读请求消息到 ByteBuffer</p>
+<p>（12）decode 请求</p>
+<p>（13）异步写 ByteBuffer 到 SocketChannel</p>
+<p>&nbsp;</p>
+<h2 id="2-4-AIO"><a href="#2-4-AIO" class="headerlink" title="2.4 AIO"></a>2.4 AIO</h2><p>NIO 2.0 引入了新的异步通道的概念，并提供了异步文件通道和异步套接字通道的实现。异步通道提供以下两种方式获取操作结果。</p>
+<ol>
+<li>通过 java.util.concurrent.Future 类表示异步操作的结果；</li>
+<li>在执行异步操作的时候传入一个 java.nio.channels。</li>
+</ol>
+<p>&nbsp;</p>
+<h2 id="2-5-4-种-I-O-的对比"><a href="#2-5-4-种-I-O-的对比" class="headerlink" title="2.5 4 种 I/O 的对比"></a>2.5 4 种 I/O 的对比</h2><table>
+<thead>
+<tr>
+<th></th>
+<th>同步阻塞I/O</th>
+<th>伪异步I/O</th>
+<th>非阻塞I/O（NIO）</th>
+<th>异步I/O（AIO）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>客户端个数：I/O线程</td>
+<td>1:1</td>
+<td>M:N</td>
+<td>M:1</td>
+<td>M:0</td>
+</tr>
+<tr>
+<td>I/O（阻塞）类型</td>
+<td>阻塞</td>
+<td>阻塞</td>
+<td>非阻塞</td>
+<td>非阻塞</td>
+</tr>
+<tr>
+<td>I/O（同步）类型</td>
+<td>同步</td>
+<td>同步</td>
+<td>同步（I/O多路复用）</td>
+<td>异步</td>
+</tr>
+<tr>
+<td>API使用难度</td>
+<td>简单</td>
+<td>简单</td>
+<td>复杂</td>
+<td>一般</td>
+</tr>
+<tr>
+<td>调试难度</td>
+<td>简单</td>
+<td>简单</td>
+<td>复杂</td>
+<td>复杂</td>
+</tr>
+<tr>
+<td>可靠性</td>
+<td>非常差</td>
+<td>非常差</td>
+<td>高</td>
+<td>高</td>
+</tr>
+<tr>
+<td>吞吐量</td>
+<td>低</td>
+<td>中</td>
+<td>高</td>
+<td>高</td>
+</tr>
+</tbody></table>
+<p>&nbsp;</p>
+<h2 id="2-6-Netty"><a href="#2-6-Netty" class="headerlink" title="2.6 Netty"></a>2.6 Netty</h2><h3 id="什么是-Netty"><a href="#什么是-Netty" class="headerlink" title="什么是 Netty"></a>什么是 Netty</h3><p>Netty is an asynchronous event-driven network application framework for rapid development of maintainable high performance protocol servers &amp; clients. </p>
+<p>Netty 是一款异步的事件驱动的<strong>网络</strong>应用程序框架，支持快速地开发可维护的<strong>高性能</strong>的面向协议的服务器和客户端。</p>
+<h3 id="Netty-的优点"><a href="#Netty-的优点" class="headerlink" title="Netty 的优点"></a>Netty 的优点</h3><ul>
+<li>功能强大</li>
+<li>使用简单</li>
+<li>性能高</li>
+<li>安全</li>
+<li>社区活跃</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2019/09/03/Netty/" data-id="ck03kroay000050hr89jap8s6" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-hello-world" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/09/03/hello-world/" class="article-date">
+  <time datetime="2019-09-03T07:22:34.478Z" itemprop="datePublished">2019-09-03</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2019/09/03/hello-world/">Hello World</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/deployment.html" target="_blank" rel="noopener">Deployment</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2019/09/03/hello-world/" data-id="ck03krob5000150hrdls6q0sz" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">September 2019</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2019/09/03/Netty/">Netty</a>
+          </li>
+        
+          <li>
+            <a href="/2019/09/03/hello-world/">Hello World</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2019 John Doe<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+
+
+  </div>
+</body>
+</html>
